@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
+const app=readFileSync('src/App.jsx','utf8');
+const components=readFileSync('src/components.jsx','utf8');
+const css=readFileSync('src/styles.css','utf8');
+const html=readFileSync('dist/client/index.html','utf8');
+test('all internal section anchors exist',()=>{const ids=new Set([...app.matchAll(/id="([^"]+)"/g)].map(m=>m[1]));ids.add('demo');for(const m of app.matchAll(/href="#([^"]+)"/g))assert.ok(ids.has(m[1]),`Missing target ${m[1]}`)});
+test('static production assets use project base',()=>{assert.ok(html.includes('/tgsum-site/assets/'));assert.ok(existsSync('dist/client/assets/hero-tgsum.webp'));assert.ok(readdirSync('dist/client/assets').some(x=>x.includes('cyrillic')&&x.endsWith('.woff2')))});
+test('privacy and experimental copy remain explicit',()=>{for(const phrase of ['Экспериментальная ветка','Все сообщения, даты и задачи','Публичного установщика этой версии пока нет','AI может ошибиться?'])assert.ok(app.includes(phrase),phrase)});
+test('demo contains no networking',()=>{assert.doesNotMatch(components,/fetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon/);assert.match(components,/Вымышленное сообщение/)});
+test('responsive and reduced motion support exist',()=>{for(const value of ['max-width:760px','max-width:450px','prefers-reduced-motion:reduce',':focus-visible'])assert.ok(css.includes(value),value)});
+test('no credentials in shipped source',()=>{const combined=app+components+css+html;assert.doesNotMatch(combined,/ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{20,}|ntn_[A-Za-z0-9]{30,}/)});

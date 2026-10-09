@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.preview/
+qa/
+.env
+.env.*
+*.log
+public/assets/hero-tgsum.png
+
+design-qa.md
